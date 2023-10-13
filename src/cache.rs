@@ -65,4 +65,9 @@ impl LRUCache {
             None
         }
     }
+
+    pub fn clear(&mut self) {
+        self.cache.clear();
+        self.lru_list.clear();
+    }
 }
