@@ -1,29 +1,32 @@
 mod cache;
 mod database;
 mod file_manager;
-fn main() {
-    let mut database = Collection::new(String::from("documents"));
-    database.create();
+use pyo3::prelude::*;
 
-    database.insert("krish", "mandal");
-    database.insert("asdasdsda", "user");
-    database.insert("amksdfsadf", "password");
-    database.insert("xxx", "meow");
-    println!("Database value:: {}", database.get("krish"));
-    database.delete("krish");
-    database.clear_cache();
-    println!("Database value:: {}", database.get("krish"));
-    println!("Database value:: {}", database.get("bean"));
-    println!("Database value:: {}", database.get("xxx"));
-    println!("Database value:: {}", database.get("dadsd"));
+#[pyfunction]
+fn get_collection(x: String) -> Collection {
+    let mut database = Collection::new(x);
+    database.create();
+    database
 }
 
+#[pymodule]
+#[pyo3(name = "simpledb")]
+fn simpledb(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(get_collection, m)?)?;
+    Ok(())
+}
+
+#[pyclass]
 pub struct Collection {
     name: String,
     cache: cache::LRUCache,
     file_manager: file_manager::FileManager,
 }
+
+#[pymethods]
 impl Collection {
+    #[new]
     pub fn new(name: String) -> Self {
         Collection {
             name: name.clone(),
@@ -39,14 +42,16 @@ impl Collection {
         self.cache.put(key, value);
         match self.file_manager.write_file(&key, &value) {
             Ok(_) => {}
-            Err(error) => {eprintln!("Error {}", error)}
+            Err(error) => {
+                eprintln!("Error {}", error)
+            }
         }
     }
 
     pub fn get(&mut self, key: &str) -> String {
         let cached_value = match self.cache.get(key) {
-            Some(value) => { String::from(value) }
-            None => { "".to_string() }
+            Some(value) => String::from(value),
+            None => "".to_string(),
         };
         if cached_value.len() > 0 {
             return cached_value;
