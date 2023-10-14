@@ -2,14 +2,15 @@ mod cache;
 mod database;
 mod file_manager;
 fn main() {
-    let mut database = Database::new();
+    let mut database = Collection::new(String::from("documents"));
+    database.create();
 
     database.insert("krish", "mandal");
     database.insert("asdasdsda", "user");
     database.insert("amksdfsadf", "password");
     database.insert("xxx", "meow");
     println!("Database value:: {}", database.get("krish"));
-    database.delete(String::from("krish"));
+    database.delete("krish");
     database.clear_cache();
     println!("Database value:: {}", database.get("krish"));
     println!("Database value:: {}", database.get("bean"));
@@ -17,16 +18,22 @@ fn main() {
     println!("Database value:: {}", database.get("dadsd"));
 }
 
-pub struct Database {
+pub struct Collection {
+    name: String,
     cache: cache::LRUCache,
     file_manager: file_manager::FileManager,
 }
-impl Database {
-    pub fn new() -> Self {
-        Database {
+impl Collection {
+    pub fn new(name: String) -> Self {
+        Collection {
+            name: name.clone(),
             cache: cache::LRUCache::new(1000),
-            file_manager: file_manager::FileManager::new(),
+            file_manager: file_manager::FileManager::new(name.clone()),
         }
+    }
+
+    pub fn create(&mut self) {
+        self.file_manager.create_folder(self.name.as_str());
     }
     pub fn insert(&mut self, key: &str, value: &str) {
         self.cache.put(key, value);
@@ -53,7 +60,7 @@ impl Database {
         self.insert(&key, &value)
     }
 
-    pub fn delete(&mut self, key: String) {
+    pub fn delete(&mut self, key: &str) {
         self.cache.delete(&key);
         self.file_manager.delete_file(&key);
     }
