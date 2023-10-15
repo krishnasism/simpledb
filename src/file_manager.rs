@@ -31,12 +31,8 @@ impl FileManager {
         if !collection_exists {
             match fs::create_dir(format!("{}/{}", self.parent, collection_name)) {
                 Ok(_) => {}
-                Err(_) => {
-                    eprintln!("Unable to create folder")
-                }
+                Err(_) => {}
             }
-        } else {
-            eprintln!("Collection already exists, skipping..")
         }
     }
 
@@ -59,10 +55,6 @@ impl FileManager {
             self.collection_name,
             String::from(key)
         );
-        let path_exists = Path::new(&full_path).exists();
-        if path_exists {
-            println!("Record exists, overwriting");
-        }
         let mut file = match File::create(full_path) {
             Ok(file) => file,
             Err(error) => return Err(error),
