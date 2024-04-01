@@ -1,8 +1,8 @@
 mod cache;
 mod database;
 mod file_manager;
-use pyo3::prelude::*;
 use database::Collection;
+use pyo3::prelude::*;
 
 #[pyfunction]
 fn get_collection(x: String) -> Collection {
